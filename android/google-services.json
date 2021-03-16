@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "944512990579",
+    "project_id": "drive-to-63d43",
+    "storage_bucket": "drive-to-63d43.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:944512990579:android:51dc5b1a9ecac60e8e9906",
+        "android_client_info": {
+          "package_name": "es.app.drive_to_youtube"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "944512990579-khnjrfa01befnbgroc1kkh0qv9aogujc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "es.app.drive_to_youtube",
+            "certificate_hash": "6375ba0b4e5dfa5aa130f6003b3f50786bfc6312"
+          }
+        },
+        {
+          "client_id": "944512990579-pgor5cb6lm76bi6u23untgjk5qt0b5iu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqsZkUCGxOHQaYZb4Bfv845cOyRAWI6R8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "944512990579-pgor5cb6lm76bi6u23untgjk5qt0b5iu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
