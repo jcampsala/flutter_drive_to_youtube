@@ -80,8 +80,9 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
   Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false}) async* {
     if(fromCache && filesCache.length > 0) yield DAReady(files: filesCache, selected: selectedFiles);
     else {
-      yield DAFetching();
-      var driveFiles = await drive.files.list(q: "mimeType contains 'video'", $fields: "files(id, name, parents, thumbnailLink)");
+      int fileCount = 0;
+      yield DAFetching(fileCount: fileCount);
+      var driveFiles = await drive.files.list(q: "mimeType contains 'video'", $fields: "files(id, name, parents, thumbnailLink, webViewLink)");
       List<VideoFile> files = [];
       for(driveV3.File file in driveFiles.files) {
         var fileJson = file.toJson();
@@ -91,9 +92,12 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
             id: fileJson['id'],
             name: fileJson['name'],
             path: fileJson['path'].cast<String>(),
-            thumbnail: fileJson['thumbnailLink']
+            thumbnail: fileJson['thumbnailLink'],
+            driveLink: fileJson['webViewLink']
         );
         files.add(vFile);
+        fileCount += 1;
+        yield DAFetching(fileCount: fileCount);
       }
       filesCache = files;
       yield DAReady(files: filesCache, selected: selectedFiles);

@@ -5,15 +5,16 @@ class VideoFile extends Equatable {
   final String name;
   final List<String> path;
   final String thumbnail;
+  final String driveLink;
 
-  const VideoFile({ this.id, this.name, this.path, String thumbnail }) :
+  const VideoFile({ this.id, this.name, this.path, String thumbnail, this.driveLink }) :
     this.thumbnail = thumbnail ?? '';
 
   @override
-  List<Object> get props => [id, name, path, thumbnail];
+  List<Object> get props => [id, name, path, thumbnail, driveLink];
 
   @override
-  String toString() => 'Video File { id: $id, name: $name, path: $path, thumbnail: $thumbnail }';
+  String toString() => 'Video File { id: $id, name: $name, path: $path, thumbnail: $thumbnail, driveLink: $driveLink }';
 
   String pathToString() {
     if(path.length < 1) return 'Fuera de mi unidad';

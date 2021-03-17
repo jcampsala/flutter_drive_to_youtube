@@ -30,7 +30,19 @@ class DAInitializationError extends DriveApiState {}
 
 class DALoggingIn extends DriveApiState {}
 
-class DAFetching extends DriveApiState {}
+class DAFetching extends DriveApiState {
+  final int fileCount;
+
+  const DAFetching({
+    this.fileCount,
+  });
+
+  @override
+  List<Object> get props => [fileCount];
+
+  @override
+  String toString() => 'DAFetching: { number of files: $fileCount }';
+}
 
 class DADownloading extends DriveApiState {
   final String fileName;

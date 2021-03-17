@@ -1,5 +1,7 @@
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_barrel.dart';
-import 'package:drive_to_youtube/top_horizontal_scroll.dart';
+import 'package:drive_to_youtube/file_preupload_list.dart';
+import 'package:drive_to_youtube/models/video_file.dart';
+import 'package:drive_to_youtube/utils.dart';
 import 'package:drive_to_youtube/video_file_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -74,7 +76,7 @@ class FileGrid extends StatelessWidget {
                     padding: EdgeInsets.only(bottom: 10),
                     child: CircularProgressIndicator(),
                   ),
-                  Text('Fetching video files...')
+                  Text('Fetching video files... (${state.fileCount})')
                 ],
               )
             );
@@ -111,11 +113,25 @@ class FileGrid extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.file_upload),
-        onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => TopHorizontalScroll(files: BlocProvider.of<DriveApiBloc>(context).filesCache,)))
-      ),
+      floatingActionButton: BlocBuilder<DriveApiBloc, DriveApiState>(
+        builder: (context, state) {
+          if(state is DAReady && state.selected.length > 0) {
+            return FloatingActionButton(
+              backgroundColor: Colors.red,
+                child: Icon(Icons.file_upload),
+                onPressed: () {
+                  List<VideoFile> files = getSelectedVideoFiles(
+                      BlocProvider.of<DriveApiBloc>(context).selectedFiles,
+                      BlocProvider.of<DriveApiBloc>(context).filesCache);
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => FilePreuploadList(files: files)));
+                }
+            );
+          } else {
+            return Container();
+          }
+        },
+      )
     );
   }
 }

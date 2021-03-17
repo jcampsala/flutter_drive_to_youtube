@@ -1,4 +1,5 @@
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_barrel.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'utils.dart';
@@ -51,11 +52,12 @@ class VideoFileTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5)),
               child: Container(
                 child: file.thumbnail.length > 0
-                    ? Image.network(
-                        file.thumbnail,
-                        fit: BoxFit.fitHeight,
-                      )
-                    : Icon(Icons.ondemand_video, size: 36),
+                    ? FadeInImage.assetNetwork(
+                      placeholder: 'assets/img_not_found.png',
+                      image: file.thumbnail,
+                      fit: BoxFit.fitHeight,
+                    )
+                    : Image.asset('assets/img_not_found.png', fit: BoxFit.fitHeight,)//Icon(Icons.ondemand_video, size: 36),
               ),
             ),
             Positioned(
