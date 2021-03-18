@@ -1,13 +1,14 @@
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:drive_to_youtube/video_file_mini_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'blocs/upload_manager/upload_manager_barrel.dart';
 
 class TopHorizontalScroll extends StatelessWidget {
   final List<VideoFile> files;
-  final Function fileTapEvent;
   final int selectedIndex;
 
-  const TopHorizontalScroll({Key key, this.files, this.fileTapEvent, this.selectedIndex});
+  const TopHorizontalScroll({Key key, this.files, this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class TopHorizontalScroll extends StatelessWidget {
               constraints: BoxConstraints.tightFor(
                   width: MediaQuery.of(context).size.width * 0.15),
               child: GestureDetector(
-                onTap: () => fileTapEvent(index),
+                onTap: () => BlocProvider.of<UploadManagerBloc>(context).add(UpdateSelectedIndex(selectedIndex: index)),
                 child: VideoFileMiniTile(file: files[index], selected: index == selectedIndex),
               ));
         });

@@ -1,4 +1,5 @@
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_barrel.dart';
+import 'package:drive_to_youtube/blocs/upload_manager/upload_manager_barrel.dart';
 import 'package:drive_to_youtube/file_preupload_list.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:drive_to_youtube/utils.dart';
@@ -123,8 +124,13 @@ class FileGrid extends StatelessWidget {
                   List<VideoFile> files = getSelectedVideoFiles(
                       BlocProvider.of<DriveApiBloc>(context).selectedFiles,
                       BlocProvider.of<DriveApiBloc>(context).filesCache);
+                  /*Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => FilePreuploadList(files: files)));*/
                   Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => FilePreuploadList(files: files)));
+                      context, MaterialPageRoute(builder: (context) => BlocProvider<UploadManagerBloc>(
+                    create: (context) => UploadManagerBloc()..add(InitUploadManager(files: files)),
+                    child: FilePreuploadList(files: files),
+                  )));
                 }
             );
           } else {

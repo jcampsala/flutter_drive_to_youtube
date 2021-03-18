@@ -1,0 +1,45 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+
+class YoutubeData extends Equatable {
+  final String name;
+  final String description;
+  final List<String> tags;
+  final GlobalKey formKey;
+
+  const YoutubeData({ this.name, this.description, this.tags, this.formKey });
+
+  @override
+  List<Object> get props => [name, description, tags, formKey];
+
+  @override
+  String toString() => 'YoutubeData { name: $name, description: $description, tags: $tags, formKey: $formKey }';
+
+  YoutubeData copyWith({String name, String description, List<String> tags, GlobalKey formKey}) {
+    return new YoutubeData(
+      name: name ?? this.name,
+      description: description ?? this.description,
+      tags: tags ?? this.tags,
+      formKey: formKey ?? this.formKey
+    );
+  }
+
+  YoutubeData updateByName(String attr, dynamic value) {
+    switch(attr) {
+      case 'name': {
+        return this.copyWith(name: value);
+      }
+      break;
+
+      case 'description': {
+        return this.copyWith(description: value);
+      }
+      break;
+
+      default: {
+        return this;
+      }
+      break;
+    }
+  }
+}

@@ -1,25 +1,23 @@
+import 'package:drive_to_youtube/blocs/upload_manager/upload_manager_barrel.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FileDetailsCard extends StatefulWidget {
   final VideoFile file;
+  final GlobalKey formKey;
 
-  const FileDetailsCard({Key key, this.file}) : super(key: key);
+  const FileDetailsCard({Key key, this.file, this.formKey}) : super(key: key);
 
   @override
   _FileDetailsCardState createState() => _FileDetailsCardState();
 }
 
 class _FileDetailsCardState extends State<FileDetailsCard> {
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
-    print(_formKey);
-    print(_formKey.currentState);
-    print(_formKey.currentWidget);
-    //_formKey.currentState.reset();
     super.initState();
   }
 
@@ -48,7 +46,7 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
               height: MediaQuery.of(context).size.height
           ),
           child: Form(
-            key: _formKey,
+            key: widget.formKey,
             child: Container(
               padding: EdgeInsets.all(15),
               child: Container(
@@ -93,16 +91,18 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
                       ),
                     ),
                     TextFormField(
-                      decoration: InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Video name',
-                      ),
-                      initialValue: widget.file.name,
+                        ),
+                        initialValue: widget.file.name,
+                        onChanged: (val) => _manageChanges(context, 'name', val)
                     ),
                     TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Video description',
-                      ),
-                      initialValue: '',
+                        decoration: InputDecoration(
+                          labelText: 'Video description',
+                        ),
+                        initialValue: '',
+                        onChanged: (val) => _manageChanges(context, 'description', val)
                     ),
                   ],
                 ),
@@ -116,4 +116,14 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
 
   void _launchURL(String url) async =>
       await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
+
+  void _manageChanges(BuildContext context, String source, String value) {
+    int selectedIndex = BlocProvider.of<UploadManagerBloc>(context).selectedIndex;
+    BlocProvider.of<UploadManagerBloc>(context).add(SaveFormChanges(
+        fileIndex: selectedIndex,
+        youtubeData: null,
+        attr: source,
+        value: value
+    ));
+  }
 }
