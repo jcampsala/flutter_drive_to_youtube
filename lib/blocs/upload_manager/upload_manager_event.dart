@@ -1,5 +1,4 @@
 import 'package:drive_to_youtube/models/video_file.dart';
-import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class UploadManagerEvent extends Equatable {
@@ -25,22 +24,20 @@ class InitUploadManager extends UploadManagerEvent {
 
 class SaveFormChanges extends UploadManagerEvent {
   final int fileIndex;
-  final YoutubeData youtubeData;
   final String attr;
-  final String value;
+  final dynamic value;
 
   const SaveFormChanges({
     this.fileIndex,
-    this.youtubeData,
     this.attr,
     this.value
   });
 
   @override
-  List<Object> get props => [fileIndex, youtubeData, attr, value];
+  List<Object> get props => [fileIndex, attr, value];
 
   @override
-  String toString() => 'SaveFormChanges: { fileIndex: $fileIndex, youtubeData: $youtubeData, attr: $attr, value: $value }';
+  String toString() => 'SaveFormChanges: { fileIndex: $fileIndex, attr: $attr, value: $value }';
 }
 
 class UpdateSelectedIndex extends UploadManagerEvent {

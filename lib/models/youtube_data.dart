@@ -36,6 +36,15 @@ class YoutubeData extends Equatable {
       }
       break;
 
+      case 'tags': {
+        List<String> tags = this.tags;
+        tags.addAll(value);
+        // Turn into set to remove duplicates
+        Set tagsSet = tags.toSet();
+        return this.copyWith(tags: tagsSet.toList());
+      }
+      break;
+
       default: {
         return this;
       }

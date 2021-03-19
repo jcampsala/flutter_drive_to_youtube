@@ -43,7 +43,7 @@ class _FilePreuploadListState extends State<FilePreuploadList> {
                  ),
                  Expanded(
                    child: Container(
-                       child: FileDetailsCard(file: widget.files[state.selectedIndex], formKey: state.youtubeDataList[state.selectedIndex].formKey,)
+                       child: FileDetailsCard(file: widget.files[state.selectedIndex], ytData: state.youtubeDataList[state.selectedIndex],)
                    ),
                  )
                ]

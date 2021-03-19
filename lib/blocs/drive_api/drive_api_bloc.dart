@@ -32,16 +32,20 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
 
   Stream<DriveApiState> _mapInitDriveApiToState(InitDriveApi event) async* {
     try {
-      var httpClient = await _googleAuth(auto: event.auto);
-      yield DALoggingIn();
-      if(httpClient != null && await _initGoogleApis(httpClient)) {
-        filesCache = []; selectedFiles = [];
+      if(drive != null && youtube != null) {
         yield DAReady(files: filesCache, selected: selectedFiles);
-        add(FetchVideoFiles());
-      } else if(event.auto) {
-        yield DAUninitialized();
       } else {
-        yield DAInitializationError();
+        var httpClient = await _googleAuth(auto: event.auto);
+        yield DALoggingIn();
+        if(httpClient != null && await _initGoogleApis(httpClient)) {
+          filesCache = []; selectedFiles = [];
+          yield DAReady(files: filesCache, selected: selectedFiles);
+          add(FetchVideoFiles());
+        } else if(event.auto) {
+          yield DAUninitialized();
+        } else {
+          yield DAInitializationError();
+        }
       }
     } catch(e) {
       print('Error in _mapInitDriveApiToState: $e');
