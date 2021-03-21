@@ -40,6 +40,22 @@ class SaveFormChanges extends UploadManagerEvent {
   String toString() => 'SaveFormChanges: { fileIndex: $fileIndex, attr: $attr, value: $value }';
 }
 
+class SaveTagChanges extends UploadManagerEvent {
+  final bool add;
+  final List<String> value;
+
+  const SaveTagChanges({
+    this.add,
+    this.value
+  });
+
+  @override
+  List<Object> get props => [add, value];
+
+  @override
+  String toString() => 'SaveTagChanges: { attr: $add, value: $value }';
+}
+
 class UpdateSelectedIndex extends UploadManagerEvent {
   final int selectedIndex;
 

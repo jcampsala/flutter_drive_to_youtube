@@ -95,21 +95,24 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
                         decoration: InputDecoration(
                           labelText: 'Video name',
                         ),
-                        initialValue: widget.file.name,
+                        initialValue: widget.ytData.name,
                         onChanged: (val) => _manageChanges(context, 'name', val)
                     ),
                     TextFormField(
                         decoration: InputDecoration(
                           labelText: 'Video description',
                         ),
-                        initialValue: '',
+                        initialValue: widget.ytData.description,
                         onChanged: (val) => _manageChanges(context, 'description', val)
                     ),
                     Container(
                       child: Text('Tags'),
                     ),
-                    Row(
-                      children: _buildTagField(context)
+                    Flexible(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: _buildTagField(context)
+                        )
                     )
                   ],
                 ),
@@ -135,15 +138,13 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
 
   List<Widget> _buildTagField(BuildContext context) {
     List<Widget> tagFields = [];
-    int index = 0;
     for(String tag in widget.ytData.tags) {
       tagFields.add(
         Chip(
           label: Text(tag),
-          onDeleted: () => print('Delete $index'),
+          onDeleted: () => BlocProvider.of<UploadManagerBloc>(context).add(SaveTagChanges(add: false, value: [tag])),
         ),
       );
-      index += 1;
     }
     // Add button inserted after tag chips
     tagFields.add(
@@ -190,10 +191,8 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
       if(stringTags.length > 0) {
         List<String> tags = stringTags.split(',');
         tags.map((e) => e.trim());
-        int selectedIndex = BlocProvider.of<UploadManagerBloc>(upperContext).selectedIndex;
-        BlocProvider.of<UploadManagerBloc>(upperContext).add(SaveFormChanges(
-            fileIndex: selectedIndex,
-            attr: 'tags',
+        BlocProvider.of<UploadManagerBloc>(upperContext).add(SaveTagChanges(
+            add: true,
             value: tags
         ));
       }

@@ -41,6 +41,7 @@ class YoutubeData extends Equatable {
         tags.addAll(value);
         // Turn into set to remove duplicates
         Set tagsSet = tags.toSet();
+        tagsSet.remove('');
         return this.copyWith(tags: tagsSet.toList());
       }
       break;
@@ -49,6 +50,22 @@ class YoutubeData extends Equatable {
         return this;
       }
       break;
+    }
+  }
+
+  YoutubeData updateTags(bool add, List<String> value) {
+    List<String> tags = this.tags;
+    if(add) {
+      tags.addAll(value);
+      // Turn into set to remove duplicates
+      Set tagsSet = tags.toSet();
+      tagsSet.remove('');
+      return this.copyWith(tags: tagsSet.toList());
+    } else {
+      for(String tag in value) {
+        tags.remove(tag);
+      }
+      return this.copyWith(tags: tags);
     }
   }
 }
