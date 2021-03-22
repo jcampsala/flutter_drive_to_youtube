@@ -144,7 +144,7 @@ class _FilePreUploadListState extends State<FilePreUploadList> {
       },
     ).then((_) {
       if(confirmed) {
-        // TODO this needs complete rework, for testing purposes only
+        // TODO this needs complete rework, a validation should take place first and then should the upload data be passed to driveApiBloc
         List<YoutubeData> youtubeData = BlocProvider.of<UploadManagerBloc>(upperContext).youtubeDataList;
         widget.driveApiBloc.add(UploadSelected(youtubeData: youtubeData));
         Navigator.push(

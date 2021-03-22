@@ -207,7 +207,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
 
       //await new Future.delayed(const Duration(seconds : 5));
       await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media, uploadOptions: ytV3.UploadOptions.resumable);
-
+      // Maybe the youtube api does not allow to assing a playlist before uploading, so it could be => upload => get playlists => insert into playlist
 
       index += 1;
     }
