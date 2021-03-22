@@ -9,17 +9,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math';
 
-class FilePreuploadList extends StatefulWidget {
+class FilePreUploadList extends StatefulWidget {
   final List<VideoFile> files;
+  final DriveApiBloc driveApiBloc;
   // TODO need to pass driveApiBloc to use when uploading
 
-  const FilePreuploadList({Key key, this.files}) : super(key: key);
+  const FilePreUploadList({Key key, this.files, this.driveApiBloc}) : super(key: key);
 
   @override
-  _FilePreuploadListState createState() => _FilePreuploadListState();
+  _FilePreUploadListState createState() => _FilePreUploadListState();
 }
 
-class _FilePreuploadListState extends State<FilePreuploadList> {
+class _FilePreUploadListState extends State<FilePreUploadList> {
   @override
   void initState() {
     super.initState();
@@ -145,9 +146,9 @@ class _FilePreuploadListState extends State<FilePreuploadList> {
       if(confirmed) {
         // TODO this needs complete rework, for testing purposes only
         List<YoutubeData> youtubeData = BlocProvider.of<UploadManagerBloc>(upperContext).youtubeDataList;
-        BlocProvider.of<DriveApiBloc>(upperContext).add(UploadSelected(youtubeData: youtubeData));
+        widget.driveApiBloc.add(UploadSelected(youtubeData: youtubeData));
         Navigator.push(
-            upperContext, MaterialPageRoute(builder: (routeContext) => UploadingPage()));
+            upperContext, MaterialPageRoute(builder: (routeContext) => UploadingPage(driveApiBloc: widget.driveApiBloc,)));
       }
     });
   }

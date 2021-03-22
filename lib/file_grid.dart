@@ -145,7 +145,7 @@ class FileGrid extends StatelessWidget {
                                             BlocProvider.of<DriveApiBloc>(
                                                 context))
                                       ..add(InitUploadManager(files: files)),
-                                child: FilePreuploadList(files: files),
+                                child: FilePreUploadList(files: files, driveApiBloc: BlocProvider.of<DriveApiBloc>(context),),
                               )));
                 } : null,
               )

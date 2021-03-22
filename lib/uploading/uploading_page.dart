@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:drive_to_youtube/utils.dart';
 
 class UploadingPage extends StatelessWidget {
+  final DriveApiBloc driveApiBloc;
+
+  const UploadingPage({Key key, this.driveApiBloc}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DriveApiBloc, DriveApiState>(
+      cubit: driveApiBloc,
       builder: (context, state) {
         if(state is DAProcessing) {
           return Scaffold(
@@ -32,7 +36,7 @@ class UploadingPage extends StatelessWidget {
               ),
             ),
           );
-        } else if(state is DAProcessEnded) {
+        } else if(state is DAReady) {
           return Scaffold(
             body: Column(
               children: [

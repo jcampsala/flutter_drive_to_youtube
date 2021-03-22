@@ -99,12 +99,12 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
         fileJson['path'] = [];
         await _recursiveParent(fileJson, fileJson['parents'] != null ? fileJson['parents'][0] : null, drive);
         VideoFile vFile = new VideoFile(
-            id: fileJson['id'],
-            name: fileJson['name'],
-            path: fileJson['path'].cast<String>(),
-            thumbnail: fileJson['thumbnailLink'],
-            driveLink: fileJson['webViewLink'],
-            size: fileJson['size']
+          id: fileJson['id'],
+          name: fileJson['name'],
+          path: fileJson['path'].cast<String>(),
+          thumbnail: fileJson['thumbnailLink'],
+          driveLink: fileJson['webViewLink'],
+          size: fileJson['size']
         );
         files.add(vFile);
         fileCount += 1;
@@ -201,6 +201,9 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
       ytV3.Video video = new ytV3.Video();
       video.snippet = snippet;
       video.status = status;
+      print(snippet.title);
+      print(snippet.description);
+      print(snippet.tags);
 
       //await new Future.delayed(const Duration(seconds : 5));
       await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media);
@@ -209,6 +212,6 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
       index += 1;
     }
     selectedFiles = [];
-    yield DAProcessEnded();
+    yield DAReady(files: filesCache, selected: selectedFiles);
   }
 }
