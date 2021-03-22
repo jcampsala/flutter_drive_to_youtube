@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'models/video_file.dart';
 
+enum Process { uploading, downloading, idle }
+
 void showFullPath(String path, BuildContext context) {
   final snackBar = SnackBar(content: Text(path), duration: Duration(seconds: 2),);
   ScaffoldMessenger.of(context).hideCurrentSnackBar();

@@ -1,3 +1,4 @@
+import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class DriveApiEvent extends Equatable {
@@ -51,4 +52,32 @@ class UpdateSelected extends DriveApiEvent {
 
   @override
   String toString() => 'UpdateSelected: { selectedId: $selectedId }';
+}
+
+class BulkSelect extends DriveApiEvent {
+  final bool select;
+
+  const BulkSelect({
+    this.select,
+  });
+
+  @override
+  List<Object> get props => [select];
+
+  @override
+  String toString() => 'BulkSelect: { select: $select }';
+}
+
+class UploadSelected extends DriveApiEvent {
+  final List<YoutubeData> youtubeData;
+
+  const UploadSelected({
+    this.youtubeData,
+  });
+
+  @override
+  List<Object> get props => [youtubeData];
+
+  @override
+  String toString() => 'UploadSelected: { videos to upload: ${youtubeData.length} }';
 }

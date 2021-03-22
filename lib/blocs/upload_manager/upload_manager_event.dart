@@ -69,3 +69,5 @@ class UpdateSelectedIndex extends UploadManagerEvent {
   @override
   String toString() => 'UpdateSelectedIndex: { selectedIndex: $selectedIndex }';
 }
+
+class ValidateUpload extends UploadManagerEvent {}

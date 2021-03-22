@@ -2,9 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_event.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_state.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
+import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:googleapis/drive/v3.dart' as driveV3;
 import 'package:googleapis/youtube/v3.dart' as ytV3;
 import 'package:googleapis_auth/auth_browser.dart';
+import 'package:drive_to_youtube/utils.dart' as utils;
 
 class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
   final ClientId id = ClientId('515168489445-t91kf9hih4vfh26eqbn5r9bebd30gln1.apps.googleusercontent.com', '8WZqw16s-YwcrfKGuUe7woS2');
@@ -27,6 +29,10 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
       yield* _mapDownloadVideoFileToState(event);
     } else if(event is UpdateSelected) {
       yield* _mapUpdateSelectedToState(event);
+    } else if(event is BulkSelect) {
+      yield* _mapBulkSelectToState(event);
+    } else if(event is UploadSelected) {
+      yield* _mapUploadSelectedToState(event);
     }
   }
 
@@ -86,7 +92,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     else {
       int fileCount = 0;
       yield DAFetching(fileCount: fileCount);
-      var driveFiles = await drive.files.list(q: "mimeType contains 'video'", $fields: "files(id, name, parents, thumbnailLink, webViewLink)");
+      var driveFiles = await drive.files.list(q: "mimeType contains 'video'", $fields: "files(id, name, parents, thumbnailLink, webViewLink, size)");
       List<VideoFile> files = [];
       for(driveV3.File file in driveFiles.files) {
         var fileJson = file.toJson();
@@ -97,7 +103,8 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
             name: fileJson['name'],
             path: fileJson['path'].cast<String>(),
             thumbnail: fileJson['thumbnailLink'],
-            driveLink: fileJson['webViewLink']
+            driveLink: fileJson['webViewLink'],
+            size: fileJson['size']
         );
         files.add(vFile);
         fileCount += 1;
@@ -154,5 +161,54 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     if(find < 0) selectedFiles.add(event.selectedId);
     else selectedFiles.removeAt(find);
     yield DAReady(files: filesCache, selected: selectedFiles);
+  }
+
+  Stream<DriveApiState> _mapBulkSelectToState(BulkSelect event) async* {
+    yield DAFetching();
+    selectedFiles = [];
+    if(event.select) {
+      for(VideoFile f in filesCache) selectedFiles.add(f.id);
+    }
+    yield DAReady(files: filesCache, selected: selectedFiles);
+  }
+
+  Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
+    print('Received videos to upload:');
+    int index = 0;
+    print(event.youtubeData);
+    for(YoutubeData file in event.youtubeData) {
+
+      yield DAProcessing(
+          process: utils.Process.downloading,
+          activeFileIndex: index,
+          files: event.youtubeData);
+      print('Downloading ${file.name}...');
+      //await new Future.delayed(const Duration(seconds : 5));
+      driveV3.Media media = await drive.files.get(file.driveId, downloadOptions: driveV3.DownloadOptions.fullMedia);
+
+      yield DAProcessing(
+          process: utils.Process.uploading,
+          activeFileIndex: index,
+          files: event.youtubeData);
+      print('Uploading ${file.name}...');
+
+      ytV3.VideoSnippet snippet = new ytV3.VideoSnippet();
+      snippet.title = file.name;
+      snippet.description = file.description;
+      snippet.tags = file.tags;
+      ytV3.VideoStatus status = new ytV3.VideoStatus();
+      status.privacyStatus = 'private';
+      ytV3.Video video = new ytV3.Video();
+      video.snippet = snippet;
+      video.status = status;
+
+      //await new Future.delayed(const Duration(seconds : 5));
+      await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media);
+
+
+      index += 1;
+    }
+    selectedFiles = [];
+    yield DAProcessEnded();
   }
 }

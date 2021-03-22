@@ -1,5 +1,7 @@
 import 'package:drive_to_youtube/models/video_file.dart';
+import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:equatable/equatable.dart';
+import 'package:drive_to_youtube/utils.dart';
 
 abstract class DriveApiState extends Equatable {
   const DriveApiState();
@@ -71,3 +73,23 @@ class DAUploading extends DriveApiState {
   @override
   String toString() => 'DAUploading { name: $fileName }';
 }
+
+class DAProcessing extends DriveApiState {
+  final Process process;
+  final int activeFileIndex;
+  final List<YoutubeData> files;
+
+  const DAProcessing({
+    this.process,
+    this.activeFileIndex,
+    this.files
+  });
+
+  @override
+  List<Object> get props => [process, activeFileIndex, files];
+
+  @override
+  String toString() => 'DAProcessing { process: $process, activeFileIndex: $activeFileIndex, number of files: ${files.length} }';
+}
+
+class DAProcessEnded extends DriveApiState {}

@@ -1,14 +1,20 @@
 import 'package:bloc/bloc.dart';
+import 'package:drive_to_youtube/blocs/drive_api/drive_api_barrel.dart';
 import 'package:drive_to_youtube/blocs/upload_manager/upload_manager_barrel.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:meta/meta.dart';
 
 class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
+  DriveApiBloc _driveApiBloc;
   List<YoutubeData> youtubeDataList = [];
   int selectedIndex = 0;
 
-  UploadManagerBloc() : super(UploadManagerUninitialized());
+  UploadManagerBloc({@required DriveApiBloc driveApiBloc})
+      : assert(driveApiBloc != null),
+        _driveApiBloc = driveApiBloc,
+        super(UploadManagerUninitialized());
 
   @override
   Stream<UploadManagerState> mapEventToState(UploadManagerEvent event) async* {
@@ -20,6 +26,8 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
       yield* _mapSaveTagChangesToState(event);
     } else if(event is UpdateSelectedIndex) {
       yield* _mapUpdateSelectedIndexToState(event);
+    } else if(event is ValidateUpload) {
+      yield* _mapValidateUploadToState();
     }
   }
 
@@ -28,10 +36,12 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
       youtubeDataList = []; selectedIndex = 0;
       for(VideoFile v in event.files) {
         YoutubeData yData = new YoutubeData(
+          v.id,
           name: v.name,
           description: '',
           tags: [],
-          formKey: new GlobalKey<FormState>()
+          formKey: new GlobalKey<FormState>(),
+          thumbnail: v.thumbnail
         );
         youtubeDataList.add(yData);
         yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
@@ -43,14 +53,14 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
 
   Stream<UploadManagerState> _mapSaveFormChangesToState(SaveFormChanges event) async* {
     youtubeDataList[event.fileIndex] = youtubeDataList[event.fileIndex].updateByName(event.attr, event.value);
-    // TODO: check this messy logic, it is not recognized as new state when updating youtubeDataList array
+    // Same state with empty array is returned to force Bloc to recognize state change
     yield UploadManagerReady(youtubeDataList: [], selectedIndex: selectedIndex);
     yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
   }
 
   Stream<UploadManagerState> _mapSaveTagChangesToState(SaveTagChanges event) async* {
     youtubeDataList[selectedIndex] = youtubeDataList[selectedIndex].updateTags(event.add, event.value);
-    // TODO: check this messy logic, it is not recognized as new state when updating youtubeDataList array
+    // Same state with empty array is returned to force Bloc to recognize state change
     yield UploadManagerReady(youtubeDataList: [], selectedIndex: selectedIndex);
     yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
   }
@@ -58,6 +68,23 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
   Stream<UploadManagerState> _mapUpdateSelectedIndexToState(UpdateSelectedIndex event) async* {
     selectedIndex = event.selectedIndex;
     yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
+  }
+
+  Stream<UploadManagerState> _mapValidateUploadToState() async* {
+    List<int> errors = [];
+    int index = 0;
+    for(YoutubeData yData in youtubeDataList) {
+      if(yData.name.length < 1) errors.add(index);
+      index += 1;
+    }
+    if(errors.length > 0) {
+      print('There are errors');
+      yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
+    } else {
+      print('All ok');
+      yield UploadManagerReady(youtubeDataList: youtubeDataList, selectedIndex: selectedIndex);
+    }
+    _driveApiBloc.add(UploadSelected(youtubeData: youtubeDataList));
   }
 
 }

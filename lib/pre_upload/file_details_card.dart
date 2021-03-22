@@ -75,6 +75,13 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
                       readOnly: true,
                       initialValue: widget.file.pathToString(),
                     ),
+                    TextFormField(
+                      decoration: InputDecoration(
+                          labelText: 'File size'
+                      ),
+                      readOnly: true,
+                      initialValue: _formatFileSize(widget.file.size)
+                    ),
                     Container(
                       margin: EdgeInsets.only(top: 30),
                       child: Row(
@@ -106,13 +113,16 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
                         onChanged: (val) => _manageChanges(context, 'description', val)
                     ),
                     Container(
-                      child: Text('Tags'),
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Text('Tags', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
                     ),
                     Flexible(
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: _buildTagField(context)
                         )
+                      //TODO add visibility selector
+
                     )
                   ],
                 ),
@@ -167,7 +177,7 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add tags'),
+          title: Text('Add tags', style: TextStyle(fontWeight: FontWeight.bold),),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -177,7 +187,7 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
             ),
           ),
           actions: <Widget>[
-            TextButton(
+            MaterialButton(
               child: Text('Add'),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -197,5 +207,13 @@ class _FileDetailsCardState extends State<FileDetailsCard> {
         ));
       }
     });
+  }
+
+  String _formatFileSize(String size) {
+    // Size is in bytes
+    int s = int.parse(size);
+    double mb = s / (1024 * 1024);
+    if(mb < 1024) return '${mb.toStringAsFixed(2)} MB';
+    else return '${(mb / 2014).toStringAsFixed(2)} GB';
   }
 }
