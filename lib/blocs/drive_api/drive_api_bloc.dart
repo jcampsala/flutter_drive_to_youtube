@@ -206,7 +206,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
       print(snippet.tags);
 
       //await new Future.delayed(const Duration(seconds : 5));
-      await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media);
+      await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media, uploadOptions: ytV3.UploadOptions.resumable);
 
 
       index += 1;
