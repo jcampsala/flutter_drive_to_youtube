@@ -9,16 +9,17 @@ class YoutubeData extends Equatable {
   final GlobalKey formKey;
   final String thumbnail;
   final String visibility;
+  final String playListId;
 
-  const YoutubeData(this.driveId, { this.name, this.description, this.tags, this.formKey, this.thumbnail, this.visibility });
-
-  @override
-  List<Object> get props => [driveId, name, description, tags, formKey, thumbnail, visibility];
+  const YoutubeData(this.driveId, { this.name, this.description, this.tags, this.formKey, this.thumbnail, this.visibility, this.playListId });
 
   @override
-  String toString() => 'YoutubeData { driveId: $driveId, name: $name, description: $description, tags: $tags, formKey: $formKey, thumbnail: $thumbnail, visibility: $visibility }';
+  List<Object> get props => [driveId, name, description, tags, formKey, thumbnail, visibility, playListId];
 
-  YoutubeData copyWith({String name, String description, List<String> tags, GlobalKey formKey, String thumbnail, String visibility}) {
+  @override
+  String toString() => 'YoutubeData { driveId: $driveId, name: $name, description: $description, tags: $tags, formKey: $formKey, thumbnail: $thumbnail, visibility: $visibility, playListId: $playListId }';
+
+  YoutubeData copyWith({String name, String description, List<String> tags, GlobalKey formKey, String thumbnail, String visibility, String playListId}) {
     return new YoutubeData(
       this.driveId,
       name: name ?? this.name,
@@ -26,7 +27,8 @@ class YoutubeData extends Equatable {
       tags: tags ?? this.tags,
       formKey: formKey ?? this.formKey,
       thumbnail: thumbnail ?? this.thumbnail,
-      visibility: visibility ?? this.visibility
+      visibility: visibility ?? this.visibility,
+      playListId: playListId ?? this.playListId
     );
   }
 
@@ -44,6 +46,11 @@ class YoutubeData extends Equatable {
 
       case 'visibility': {
         return this.copyWith(visibility: value);
+      }
+      break;
+
+      case 'playListId': {
+        return this.copyWith(playListId: value);
       }
       break;
 

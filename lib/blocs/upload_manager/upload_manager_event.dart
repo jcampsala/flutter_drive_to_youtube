@@ -23,21 +23,19 @@ class InitUploadManager extends UploadManagerEvent {
 }
 
 class SaveFormChanges extends UploadManagerEvent {
-  final int fileIndex;
   final String attr;
   final dynamic value;
 
   const SaveFormChanges({
-    this.fileIndex,
     this.attr,
     this.value
   });
 
   @override
-  List<Object> get props => [fileIndex, attr, value];
+  List<Object> get props => [attr, value];
 
   @override
-  String toString() => 'SaveFormChanges: { fileIndex: $fileIndex, attr: $attr, value: $value }';
+  String toString() => 'SaveFormChanges: { attr: $attr, value: $value }';
 }
 
 class SaveTagChanges extends UploadManagerEvent {

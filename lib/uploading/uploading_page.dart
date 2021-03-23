@@ -39,6 +39,8 @@ class UploadingPage extends StatelessWidget {
         } else if(state is DAReady) {
           return Scaffold(
             body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   padding: EdgeInsets.all(10),
@@ -49,7 +51,8 @@ class UploadingPage extends StatelessWidget {
                       Navigator.of(context).pop();
                       Navigator.of(context).pop();
                     },
-                  child: Text('Return'),
+                  color: Colors.red,
+                  child: Text('Return', style: TextStyle(color: Colors.white),),
                 ),
               ],
             )

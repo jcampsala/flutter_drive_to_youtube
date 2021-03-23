@@ -12,7 +12,6 @@ import 'dart:math';
 class FilePreUploadList extends StatefulWidget {
   final List<VideoFile> files;
   final DriveApiBloc driveApiBloc;
-  // TODO need to pass driveApiBloc to use when uploading
 
   const FilePreUploadList({Key key, this.files, this.driveApiBloc}) : super(key: key);
 

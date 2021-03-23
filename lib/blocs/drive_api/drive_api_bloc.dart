@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_event.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_state.dart';
+import 'package:drive_to_youtube/models/playlist_data.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:googleapis/drive/v3.dart' as driveV3;
@@ -10,7 +11,7 @@ import 'package:drive_to_youtube/utils.dart' as utils;
 
 class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
   final ClientId id = ClientId('515168489445-t91kf9hih4vfh26eqbn5r9bebd30gln1.apps.googleusercontent.com', '8WZqw16s-YwcrfKGuUe7woS2');
-  final List<String> scopes = [driveV3.DriveApi.driveScope, ytV3.YouTubeApi.youtubeUploadScope];
+  final List<String> scopes = [driveV3.DriveApi.driveScope, /*ytV3.YouTubeApi.youtubeUploadScope*/ ytV3.YouTubeApi.youtubeScope];
   driveV3.DriveApi drive;
   ytV3.YouTubeApi youtube;
 
@@ -111,6 +112,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
         yield DAFetching(fileCount: fileCount);
       }
       filesCache = files;
+
       yield DAReady(files: filesCache, selected: selectedFiles);
     }
   }
@@ -183,8 +185,8 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
           activeFileIndex: index,
           files: event.youtubeData);
       print('Downloading ${file.name}...');
-      //await new Future.delayed(const Duration(seconds : 5));
-      driveV3.Media media = await drive.files.get(file.driveId, downloadOptions: driveV3.DownloadOptions.fullMedia);
+
+      driveV3.Media media = await _downloadDriveVideo(file.driveId);
 
       yield DAProcessing(
           process: utils.Process.uploading,
@@ -192,26 +194,67 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
           files: event.youtubeData);
       print('Uploading ${file.name}...');
 
-      ytV3.VideoSnippet snippet = new ytV3.VideoSnippet();
-      snippet.title = file.name;
-      snippet.description = file.description;
-      snippet.tags = file.tags;
-      ytV3.VideoStatus status = new ytV3.VideoStatus();
-      status.privacyStatus = 'private';
-      ytV3.Video video = new ytV3.Video();
-      video.snippet = snippet;
-      video.status = status;
-      print(snippet.title);
-      print(snippet.description);
-      print(snippet.tags);
+      Map<String, dynamic> uploadResult = await _uploadToYoutube(file, media);
 
-      //await new Future.delayed(const Duration(seconds : 5));
-      await youtube.videos.insert(video, ['snippet', 'status'], uploadMedia: media, uploadOptions: ytV3.UploadOptions.resumable);
-      // Maybe the youtube api does not allow to assing a playlist before uploading, so it could be => upload => get playlists => insert into playlist
+      // TODO: must return some type of error regarding playlist. Video should be correctly uploaded
+      if(uploadResult['success'] && file.playListId.length > 0)
+        await _insertVideoToPlayList(uploadResult['video'].id, file.playListId);
 
       index += 1;
     }
     selectedFiles = [];
     yield DAReady(files: filesCache, selected: selectedFiles);
+  }
+
+  Future<driveV3.Media> _downloadDriveVideo(String fileId) async {
+    return await drive.files.get(fileId, downloadOptions: driveV3.DownloadOptions.fullMedia);
+  }
+
+  Future<Map<String, dynamic>> _uploadToYoutube(YoutubeData youtubeData, driveV3.Media media) async {
+    try {
+      ytV3.VideoSnippet snippet = new ytV3.VideoSnippet();
+      snippet.title = youtubeData.name;
+      snippet.description = youtubeData.description;
+      snippet.tags = youtubeData.tags;
+
+      ytV3.VideoStatus status = new ytV3.VideoStatus();
+      status.privacyStatus = youtubeData.visibility;
+
+      ytV3.Video video = new ytV3.Video();
+      video.snippet = snippet;
+      video.status = status;
+
+      ytV3.Video uploadedVideo = await youtube.videos.insert(video,
+          ['id', 'snippet', 'status'],
+          uploadMedia: media,
+          uploadOptions: ytV3.UploadOptions.resumable);
+
+      return { 'success': true, 'video': uploadedVideo };
+    } catch(e) {
+      print('Error while uploading to Youtube. File: ${youtubeData.name}');
+      print(e);
+      return { 'success': false, 'video': new ytV3.Video() };
+    }
+
+  }
+
+  Future<List<PlayListData>> getUserPlayLists() async {
+    List<PlayListData> playlists = [];
+    ytV3.PlaylistListResponse userPlaylists = await youtube.playlists.list(['id', 'snippet'], mine: true);
+    for(ytV3.Playlist pList in userPlaylists.items) {
+      playlists.add(new PlayListData(pList.id, pList.snippet.title));
+    }
+    return playlists;
+  }
+
+  Future<ytV3.PlaylistItem> _insertVideoToPlayList(String videoId, String playListId) async {
+    ytV3.PlaylistItem pItem = ytV3.PlaylistItem();
+    ytV3.PlaylistItemSnippet pItemSnippet = ytV3.PlaylistItemSnippet();
+    pItemSnippet.resourceId = new ytV3.ResourceId();
+    pItemSnippet.resourceId.videoId = videoId;
+    pItemSnippet.resourceId.kind = 'youtube#video';
+    pItemSnippet.playlistId = playListId;
+    pItem.snippet = pItemSnippet;
+    return await youtube.playlistItems.insert(pItem, ['id, snippet']);
   }
 }
