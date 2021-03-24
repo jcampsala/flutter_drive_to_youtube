@@ -1,12 +1,13 @@
+import 'package:drive_to_youtube/models/file_processing_data.dart';
 import 'package:drive_to_youtube/models/youtube_data.dart';
 import 'package:flutter/material.dart';
 import 'package:drive_to_youtube/utils.dart';
 
 class UpdatableVideoFileMiniTile extends StatelessWidget {
   final YoutubeData file;
-  final Process process;
+  final FileProcessingData processData;
 
-  const UpdatableVideoFileMiniTile({Key key, this.file, this.process})
+  const UpdatableVideoFileMiniTile({Key key, this.file, this.processData})
       : super(key: key);
 
   @override
@@ -14,24 +15,44 @@ class UpdatableVideoFileMiniTile extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        boxShadow: process != Process.idle
-            ? [
-                BoxShadow(
-                  color: Colors.blueAccent,
-                  blurRadius: 5.0,
-                  spreadRadius: 5.0,
-                  offset: Offset(0.0, 0.0), // shadow direction: bottom right
-                )
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.grey,
-                  blurRadius: 3.0,
-                  spreadRadius: 0.0,
-                  offset: Offset(2.0, 2.0), // shadow direction: bottom right
-                )
-              ],
-      ),
+          boxShadow: processData.process == Process.error
+              ? [
+                  BoxShadow(
+                    color: Colors.redAccent,
+                    blurRadius: 5.0,
+                    spreadRadius: 5.0,
+                    offset: Offset(0.0, 0.0), // shadow direction: bottom right
+                  )
+                ]
+              : processData.process == Process.completed
+                  ? [
+                      BoxShadow(
+                        color: Colors.lightGreenAccent,
+                        blurRadius: 5.0,
+                        spreadRadius: 5.0,
+                        offset:
+                            Offset(2.0, 2.0), // shadow direction: bottom right
+                      )
+                    ]
+                  : processData.process != Process.idle
+                      ? [
+                          BoxShadow(
+                            color: Colors.blueAccent,
+                            blurRadius: 3.0,
+                            spreadRadius: 0.0,
+                            offset: Offset(
+                                2.0, 2.0), // shadow direction: bottom right
+                          )
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.grey,
+                            blurRadius: 3.0,
+                            spreadRadius: 0.0,
+                            offset: Offset(2.0, 2.0),
+                          )
+                        ] // shadow direction: bottom right
+          ),
       child: Container(
           constraints: BoxConstraints.tightFor(
               width: MediaQuery.of(context).size.width,
@@ -53,7 +74,7 @@ class UpdatableVideoFileMiniTile extends StatelessWidget {
                           fit: BoxFit
                               .fitHeight) //Icon(Icons.ondemand_video, size: 36),
                   ),
-              process == Process.uploading
+              processData.process == Process.uploading
                   ? Container(
                       constraints: BoxConstraints.tightFor(
                         width: MediaQuery.of(context).size.width,
@@ -64,7 +85,7 @@ class UpdatableVideoFileMiniTile extends StatelessWidget {
                         child: LinearProgressIndicator(),
                       ),
                     )
-                  : process == Process.downloading
+                  : processData.process == Process.downloading
                       ? Container(
                           constraints: BoxConstraints.tightFor(
                             width: MediaQuery.of(context).size.width,
@@ -75,7 +96,19 @@ class UpdatableVideoFileMiniTile extends StatelessWidget {
                             child: CircularProgressIndicator(),
                           ),
                         )
-                      : Container()
+                      : Container(),
+              processData.process == Process.error
+                  ? Positioned(
+                      top: 50,
+                      left: 50,
+                      child: MaterialButton(
+                        child: Text('Show error'),
+                        onPressed: () {
+                          print(processData.error);
+                          print(processData.displayError);
+                        },
+                      ))
+                  : Container()
             ],
           )),
     );

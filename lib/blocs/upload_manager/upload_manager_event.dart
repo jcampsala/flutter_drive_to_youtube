@@ -68,4 +68,18 @@ class UpdateSelectedIndex extends UploadManagerEvent {
   String toString() => 'UpdateSelectedIndex: { selectedIndex: $selectedIndex }';
 }
 
+class DeleteSelectedVideo extends UploadManagerEvent {
+  final String driveId;
+
+  const DeleteSelectedVideo({
+    this.driveId,
+  });
+
+  @override
+  List<Object> get props => [driveId];
+
+  @override
+  String toString() => 'DeleteSelectedVideo: { selectedIndex: $driveId }';
+}
+
 class ValidateUpload extends UploadManagerEvent {}

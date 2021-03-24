@@ -30,7 +30,7 @@ class _FilePreUploadListState extends State<FilePreUploadList> {
     return Scaffold(
       body: BlocBuilder<UploadManagerBloc, UploadManagerState>(
         builder: (context, state) {
-          if (state is UploadManagerReady) {
+          if (state is UploadManagerReady && state.youtubeDataList.length > 0) {
             return Stack(
               children: [
                 Column(children: [
@@ -40,7 +40,7 @@ class _FilePreUploadListState extends State<FilePreUploadList> {
                           height: min(
                               150, MediaQuery.of(context).size.height * 0.3)),
                       child: TopHorizontalScroll(
-                        files: widget.files,
+                        files: state.youtubeDataList,//widget.files,
                         selectedIndex: state.selectedIndex,
                       )),
                   Divider(
@@ -83,6 +83,10 @@ class _FilePreUploadListState extends State<FilePreUploadList> {
                 ),
               ],
             );
+          } else if(state is UploadManagerReady && state.youtubeDataList.length < 1) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => Navigator.of(context).pop());
+            return Container();
           } else if (state is UploadManagerUninitialized) {
             return Center(
                 child: Column(

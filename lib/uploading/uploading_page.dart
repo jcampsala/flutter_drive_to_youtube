@@ -2,7 +2,6 @@ import 'package:drive_to_youtube/blocs/drive_api/drive_api_barrel.dart';
 import 'package:drive_to_youtube/uploading/updatable_video_file_mini_tile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:drive_to_youtube/utils.dart';
 
 class UploadingPage extends StatelessWidget {
   final DriveApiBloc driveApiBloc;
@@ -27,10 +26,10 @@ class UploadingPage extends StatelessWidget {
                     mainAxisSpacing: 30),
                 itemCount: state.files.length,
                 itemBuilder: (context, index) {
-                  Process p = state.activeFileIndex == index ? state.process : Process.idle;
+                  //Process p = state.activeFileIndex == index ? state.process : Process.idle;
                   return UpdatableVideoFileMiniTile(
                       file: state.files[index],
-                      process: p
+                      processData: state.fileProcessingData[index]
                   );
                 },
               ),

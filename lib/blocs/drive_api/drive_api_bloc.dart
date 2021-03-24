@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_event.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_state.dart';
+import 'package:drive_to_youtube/models/file_processing_data.dart';
 import 'package:drive_to_youtube/models/playlist_data.dart';
 import 'package:drive_to_youtube/models/video_file.dart';
 import 'package:drive_to_youtube/models/youtube_data.dart';
+import 'package:flutter/services.dart';
 import 'package:googleapis/drive/v3.dart' as driveV3;
 import 'package:googleapis/youtube/v3.dart' as ytV3;
 import 'package:googleapis_auth/auth_browser.dart';
@@ -88,9 +91,28 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     }
   }
 
-  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false}) async* {
+  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false, fromJson = false}) async* {
+    // TODO: check if this ever gets triggered
     if(fromCache && filesCache.length > 0) yield DAReady(files: filesCache, selected: selectedFiles);
-    else {
+    // TODO: load from json shoul only be available for testing purposes (avoid calling DriveApi)
+    else if(fromJson) {
+      String jsonData = await rootBundle.loadString('dummy_data.json');
+      Object objectData = json.decode(jsonData);
+      List<VideoFile> files = [];
+      for(var e in objectData) {
+        VideoFile vFile = new VideoFile(
+            id: e['id'],
+            name: e['name'],
+            path: e['path'].cast<String>(),
+            thumbnail: e['thumbnail'],
+            driveLink: e['driveLink'],
+            size: e['size']
+        );
+        files.add(vFile);
+        filesCache = files;
+      }
+      yield DAReady(files: filesCache, selected: selectedFiles);
+    } else {
       int fileCount = 0;
       yield DAFetching(fileCount: fileCount);
       var driveFiles = await drive.files.list(q: "mimeType contains 'video'", $fields: "files(id, name, parents, thumbnailLink, webViewLink, size)");
@@ -175,35 +197,91 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
   }
 
   Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
-    print('Received videos to upload:');
     int index = 0;
-    print(event.youtubeData);
+    List<FileProcessingData> processData = _buildProcessing(event.youtubeData);
+
     for(YoutubeData file in event.youtubeData) {
 
+      processData[index] = processData[index].copyWith(process: utils.Process.downloading);
       yield DAProcessing(
-          process: utils.Process.downloading,
-          activeFileIndex: index,
-          files: event.youtubeData);
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
       print('Downloading ${file.name}...');
 
-      driveV3.Media media = await _downloadDriveVideo(file.driveId);
+      driveV3.Media media;
+      try {
+        media = await _downloadDriveVideo(file.driveId);
+      } catch(e) {
+        processData[index] = processData[index].copyWith(
+          process: utils.Process.error,
+          error: e.toString(),
+          displayError: 'Download from Drive failed!'
+        );
+        yield DAProcessing(
+            files: event.youtubeData,
+            fileProcessingData: processData,
+            activeFileIndex: index);
+        break;
+      }
 
+      processData[index] = processData[index].copyWith(process: utils.Process.uploading);
       yield DAProcessing(
-          process: utils.Process.uploading,
-          activeFileIndex: index,
-          files: event.youtubeData);
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
       print('Uploading ${file.name}...');
 
-      Map<String, dynamic> uploadResult = await _uploadToYoutube(file, media);
+      Map<String, dynamic> uploadResult;
+      try {
+        uploadResult = await _uploadToYoutube(file, media);
+      } catch(e) {
+        processData[index] = processData[index].copyWith(
+            process: utils.Process.error,
+            error: e.toString(),
+            displayError: 'Upload to Youtube failed!'
+        );
+        yield DAProcessing(
+            files: event.youtubeData,
+            fileProcessingData: processData,
+            activeFileIndex: index);
+        break;
+      }
 
-      // TODO: must return some type of error regarding playlist. Video should be correctly uploaded
-      if(uploadResult['success'] && file.playListId.length > 0)
-        await _insertVideoToPlayList(uploadResult['video'].id, file.playListId);
+      if(uploadResult['success'] && file.playListId.length > 0) {
+        try {
+          await _insertVideoToPlayList(uploadResult['video'].id, file.playListId);
+        } catch(e) {
+          processData[index] = processData[index].copyWith(
+              process: utils.Process.error,
+              error: e.toString(),
+              displayError: 'Asignation to playlist failed!'
+          );
+          yield DAProcessing(
+              files: event.youtubeData,
+              fileProcessingData: processData,
+              activeFileIndex: index);
+          break;
+        }
+      }
 
+      processData[index] = processData[index].copyWith(process: utils.Process.completed);
+      yield DAProcessing(
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
       index += 1;
     }
     selectedFiles = [];
     yield DAReady(files: filesCache, selected: selectedFiles);
+  }
+
+  List<FileProcessingData> _buildProcessing(List<YoutubeData> files) {
+    List<FileProcessingData> processDataList = [];
+    for(YoutubeData file in files) {
+      processDataList.add(new FileProcessingData(file.driveId));
+    }
+    return processDataList;
   }
 
   Future<driveV3.Media> _downloadDriveVideo(String fileId) async {
@@ -238,15 +316,6 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
 
   }
 
-  Future<List<PlayListData>> getUserPlayLists() async {
-    List<PlayListData> playlists = [];
-    ytV3.PlaylistListResponse userPlaylists = await youtube.playlists.list(['id', 'snippet'], mine: true);
-    for(ytV3.Playlist pList in userPlaylists.items) {
-      playlists.add(new PlayListData(pList.id, pList.snippet.title));
-    }
-    return playlists;
-  }
-
   Future<ytV3.PlaylistItem> _insertVideoToPlayList(String videoId, String playListId) async {
     ytV3.PlaylistItem pItem = ytV3.PlaylistItem();
     ytV3.PlaylistItemSnippet pItemSnippet = ytV3.PlaylistItemSnippet();
@@ -256,5 +325,14 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     pItemSnippet.playlistId = playListId;
     pItem.snippet = pItemSnippet;
     return await youtube.playlistItems.insert(pItem, ['id, snippet']);
+  }
+
+  Future<List<PlayListData>> getUserPlayLists() async {
+    List<PlayListData> playlists = [];
+    ytV3.PlaylistListResponse userPlaylists = await youtube.playlists.list(['id', 'snippet'], mine: true);
+    for(ytV3.Playlist pList in userPlaylists.items) {
+      playlists.add(new PlayListData(pList.id, pList.snippet.title));
+    }
+    return playlists;
   }
 }

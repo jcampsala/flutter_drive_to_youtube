@@ -29,3 +29,4 @@ flutter:
   assets:
     - assets/img_not_found.png
     - assets/youtube_logo.png
+    - assets/dummy_data.json

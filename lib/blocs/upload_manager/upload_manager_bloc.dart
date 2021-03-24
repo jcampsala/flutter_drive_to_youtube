@@ -28,6 +28,8 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
       yield* _mapSaveTagChangesToState(event);
     } else if(event is UpdateSelectedIndex) {
       yield* _mapUpdateSelectedIndexToState(event);
+    } else if(event is DeleteSelectedVideo) {
+      yield* _mapDeleteSelectedVideoToState(event);
     } else if(event is ValidateUpload) {
       yield* _mapValidateUploadToState();
     }
@@ -48,6 +50,7 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
           playListId: ''
         );
         youtubeDataList.add(yData);
+        // TODO: remove comment. Added to avoid calling YT api
         playlists = await _driveApiBloc.getUserPlayLists();
         playlists.add(new PlayListData('', '-'));
         yield UploadManagerReady(youtubeDataList: youtubeDataList, playlists: playlists, selectedIndex: selectedIndex);
@@ -73,6 +76,14 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
 
   Stream<UploadManagerState> _mapUpdateSelectedIndexToState(UpdateSelectedIndex event) async* {
     selectedIndex = event.selectedIndex;
+    yield UploadManagerReady(youtubeDataList: youtubeDataList, playlists: playlists, selectedIndex: selectedIndex);
+  }
+
+  Stream<UploadManagerState> _mapDeleteSelectedVideoToState(DeleteSelectedVideo event) async* {
+    youtubeDataList.removeWhere((e) => e.driveId == event.driveId);
+    if(selectedIndex == youtubeDataList.length) selectedIndex -= 1;
+    _driveApiBloc.add(UpdateSelected(selectedId: event.driveId));
+    yield UploadManagerReady(youtubeDataList: [], playlists: playlists, selectedIndex: selectedIndex);
     yield UploadManagerReady(youtubeDataList: youtubeDataList, playlists: playlists, selectedIndex: selectedIndex);
   }
 
