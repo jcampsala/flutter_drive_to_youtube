@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_event.dart';
 import 'package:drive_to_youtube/blocs/drive_api/drive_api_state.dart';
@@ -37,6 +38,8 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
       yield* _mapBulkSelectToState(event);
     } else if(event is UploadSelected) {
       yield* _mapUploadSelectedToState(event);
+    } else if(event is ResetFlow) {
+      yield* _mapResetFlowToState();
     }
   }
 
@@ -91,7 +94,8 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     }
   }
 
-  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false, fromJson = false}) async* {
+  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false, fromJson = true}) async* {
+    filesCache = []; selectedFiles = [];
     // TODO: check if this ever gets triggered
     if(fromCache && filesCache.length > 0) yield DAReady(files: filesCache, selected: selectedFiles);
     // TODO: load from json shoul only be available for testing purposes (avoid calling DriveApi)
@@ -196,7 +200,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     yield DAReady(files: filesCache, selected: selectedFiles);
   }
 
-  Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
+  /*Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
     int index = 0;
     List<FileProcessingData> processData = _buildProcessing(event.youtubeData);
 
@@ -222,10 +226,10 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
             files: event.youtubeData,
             fileProcessingData: processData,
             activeFileIndex: index);
-        break;
       }
 
       processData[index] = processData[index].copyWith(process: utils.Process.uploading);
+      yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
       yield DAProcessing(
           files: event.youtubeData,
           fileProcessingData: processData,
@@ -241,11 +245,11 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
             error: e.toString(),
             displayError: 'Upload to Youtube failed!'
         );
+        yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
         yield DAProcessing(
             files: event.youtubeData,
             fileProcessingData: processData,
             activeFileIndex: index);
-        break;
       }
 
       if(uploadResult['success'] && file.playListId.length > 0) {
@@ -257,23 +261,95 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
               error: e.toString(),
               displayError: 'Asignation to playlist failed!'
           );
+          yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
           yield DAProcessing(
               files: event.youtubeData,
               fileProcessingData: processData,
               activeFileIndex: index);
-          break;
         }
       }
 
       processData[index] = processData[index].copyWith(process: utils.Process.completed);
+      yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
       yield DAProcessing(
           files: event.youtubeData,
           fileProcessingData: processData,
           activeFileIndex: index);
       index += 1;
     }
-    selectedFiles = [];
-    yield DAReady(files: filesCache, selected: selectedFiles);
+
+    yield DAProcessEnded(files: event.youtubeData, fileProcessingData: processData);
+  }*/
+
+  Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
+    int index = 0;
+    List<FileProcessingData> processData = _buildProcessing(event.youtubeData);
+
+    for(YoutubeData file in event.youtubeData) {
+
+      processData[index] = processData[index].copyWith(process: utils.Process.downloading);
+      yield DAProcessing(
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
+      print('Downloading ${file.name}...');
+
+      await Future.delayed(Duration(seconds: 1));
+      var rand = Random();
+      if(rand.nextInt(100) < 50) {
+        processData[index] = processData[index].copyWith(
+            process: utils.Process.error,
+            error: e.toString(),
+            displayError: 'Download from Drive failed!'
+        );
+        yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
+        yield DAProcessing(
+            files: event.youtubeData,
+            fileProcessingData: processData,
+            activeFileIndex: index);
+        index += 1;
+        continue;
+      }
+
+      processData[index] = processData[index].copyWith(process: utils.Process.uploading);
+      yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
+      yield DAProcessing(
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
+      print('Uploading ${file.name}...');
+
+      await Future.delayed(Duration(seconds: 1));
+      if(rand.nextInt(100) < 50) {
+        processData[index] = processData[index].copyWith(
+            process: utils.Process.error,
+            error: e.toString(),
+            displayError: 'Upload to Youtube failed!'
+        );
+        yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
+        yield DAProcessing(
+            files: event.youtubeData,
+            fileProcessingData: processData,
+            activeFileIndex: index);
+        index += 1;
+        continue;
+      }
+
+      processData[index] = processData[index].copyWith(process: utils.Process.completed);
+      yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
+      yield DAProcessing(
+          files: event.youtubeData,
+          fileProcessingData: processData,
+          activeFileIndex: index);
+      index += 1;
+    }
+
+    yield DAProcessEnded(files: event.youtubeData, fileProcessingData: processData);
+  }
+
+  Stream<DriveApiState> _mapResetFlowToState() async* {
+    //Todo pass if load from cache in event
+    add(FetchVideoFiles());
   }
 
   List<FileProcessingData> _buildProcessing(List<YoutubeData> files) {

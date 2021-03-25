@@ -129,15 +129,23 @@ class _FilePreUploadListState extends State<FilePreUploadList> {
             child: Text('All selected videos (${widget.files.length}) will be uploaded with the provided youtube settings. Are you sure?'),
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('Confirm'),
+            MaterialButton(
+              color: Colors.red,
+              child: Text('Confirm', style: TextStyle(color: Colors.white)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5)
+              ),
               onPressed: () {
                 confirmed = true;
                 Navigator.of(context).pop();
               },
             ),
-            TextButton(
-              child: Text('Cancel'),
+            MaterialButton(
+              color: Colors.grey,
+              child: Text('Cancel', style: TextStyle(color: Colors.white)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5)
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },

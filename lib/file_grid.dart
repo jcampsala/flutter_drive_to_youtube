@@ -15,8 +15,12 @@ class FileGrid extends StatelessWidget {
         if (state is DAUninitialized) {
           return Container(
             child: Center(
-              child: ElevatedButton(
-                child: Text('Login to Drive'),
+              child: MaterialButton(
+                child: Text('Login to Drive', style: TextStyle(color: Colors.white),),
+                color: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)
+                ),
                 onPressed: () {
                   BlocProvider.of<DriveApiBloc>(context)
                       .add(InitDriveApi(auto: false));

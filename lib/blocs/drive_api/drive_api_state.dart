@@ -75,24 +75,6 @@ class DAUploading extends DriveApiState {
   String toString() => 'DAUploading { name: $fileName }';
 }
 
-/*class DAProcessing extends DriveApiState {
-  final Process process;
-  final int activeFileIndex;
-  final List<YoutubeData> files;
-
-  const DAProcessing({
-    this.process,
-    this.activeFileIndex,
-    this.files
-  });
-
-  @override
-  List<Object> get props => [process, activeFileIndex, files];
-
-  @override
-  String toString() => 'DAProcessing { process: $process, activeFileIndex: $activeFileIndex, number of files: ${files.length} }';
-}*/
-
 class DAProcessing extends DriveApiState {
   final List<YoutubeData> files;
   final List<FileProcessingData> fileProcessingData;
@@ -111,4 +93,18 @@ class DAProcessing extends DriveApiState {
   String toString() => 'DAProcessing { files: ${files.length}, fileProcessingData: $fileProcessingData, activeFileIndex: $activeFileIndex }';
 }
 
-class DAProcessEnded extends DriveApiState {}
+class DAProcessEnded extends DriveApiState {
+  final List<YoutubeData> files;
+  final List<FileProcessingData> fileProcessingData;
+
+  const DAProcessEnded({
+    this.files,
+    this.fileProcessingData,
+  });
+
+  @override
+  List<Object> get props => [files, fileProcessingData];
+
+  @override
+  String toString() => 'DAProcessEnded { files: ${files.length}, fileProcessingData: $fileProcessingData }';
+}

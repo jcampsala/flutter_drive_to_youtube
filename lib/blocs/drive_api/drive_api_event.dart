@@ -81,3 +81,5 @@ class UploadSelected extends DriveApiEvent {
   @override
   String toString() => 'UploadSelected: { videos to upload: ${youtubeData.length} }';
 }
+
+class ResetFlow extends DriveApiEvent {}
