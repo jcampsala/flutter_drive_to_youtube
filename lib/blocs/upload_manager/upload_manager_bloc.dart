@@ -50,11 +50,11 @@ class UploadManagerBloc extends Bloc<UploadManagerEvent, UploadManagerState> {
           playListId: ''
         );
         youtubeDataList.add(yData);
-        // TODO: remove comment. Added to avoid calling YT api
-        //playlists = await _driveApiBloc.getUserPlayLists();
-        //playlists.add(new PlayListData('', '-'));
-        yield UploadManagerReady(youtubeDataList: youtubeDataList, playlists: playlists, selectedIndex: selectedIndex);
       }
+      // TODO: remove comment. Added to avoid calling YT api
+      playlists = await _driveApiBloc.getUserPlayLists();
+      playlists.add(new PlayListData('', '-'));
+      yield UploadManagerReady(youtubeDataList: youtubeDataList, playlists: playlists, selectedIndex: selectedIndex);
     } catch(e) {
       print('Error in _mapInitUploadManagerToState: $e');
     }

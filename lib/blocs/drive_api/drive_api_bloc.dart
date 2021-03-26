@@ -94,7 +94,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     }
   }
 
-  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false, fromJson = true}) async* {
+  Stream<DriveApiState> _mapFetchVideoFilesToState({fromCache = false, fromJson = false}) async* {
     filesCache = []; selectedFiles = [];
     // TODO: check if this ever gets triggered
     if(fromCache && filesCache.length > 0) yield DAReady(files: filesCache, selected: selectedFiles);
@@ -200,7 +200,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     yield DAReady(files: filesCache, selected: selectedFiles);
   }
 
-  /*Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
+  Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
     int index = 0;
     List<FileProcessingData> processData = _buildProcessing(event.youtubeData);
 
@@ -222,10 +222,12 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
           error: e.toString(),
           displayError: 'Download from Drive failed!'
         );
+        yield DAProcessing(files: event.youtubeData, fileProcessingData: [], activeFileIndex: index);
         yield DAProcessing(
             files: event.youtubeData,
             fileProcessingData: processData,
             activeFileIndex: index);
+        continue;
       }
 
       processData[index] = processData[index].copyWith(process: utils.Process.uploading);
@@ -250,6 +252,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
             files: event.youtubeData,
             fileProcessingData: processData,
             activeFileIndex: index);
+        continue;
       }
 
       if(uploadResult['success'] && file.playListId.length > 0) {
@@ -266,6 +269,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
               files: event.youtubeData,
               fileProcessingData: processData,
               activeFileIndex: index);
+          continue;
         }
       }
 
@@ -279,9 +283,9 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     }
 
     yield DAProcessEnded(files: event.youtubeData, fileProcessingData: processData);
-  }*/
+  }
 
-  Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
+  /*Stream<DriveApiState> _mapUploadSelectedToState(UploadSelected event) async* {
     int index = 0;
     List<FileProcessingData> processData = _buildProcessing(event.youtubeData);
 
@@ -345,7 +349,7 @@ class DriveApiBloc extends Bloc<DriveApiEvent, DriveApiState> {
     }
 
     yield DAProcessEnded(files: event.youtubeData, fileProcessingData: processData);
-  }
+  }*/
 
   Stream<DriveApiState> _mapResetFlowToState() async* {
     //Todo pass if load from cache in event
